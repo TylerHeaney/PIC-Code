@@ -14,6 +14,12 @@ class Particle:
     def initialize(self,position, momentum):
         self.position=position
         self.momentum=momentum
-
+    
+    def aggregate_field(self,mesh):
+        for node in mesh:
+            self.field+=node.field * shape(node.position-self.position)
+    
+    def velocity(self):
+        return momentum/mass
 
 
