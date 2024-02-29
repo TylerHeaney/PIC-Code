@@ -3,6 +3,12 @@ import numpy
 class Particle:
     """Class for each particle in the simulation"""
     
+    def shape(distance):
+        distance=abs(distance)
+        if(distance>1):
+            return 0
+        return distance
+
     def __init__(self,real_mass,real_charge,number):
         self.mass=real_mass*number
         self.charge=real_charge*number
@@ -17,9 +23,9 @@ class Particle:
     
     def aggregate_field(self,mesh):
         for node in mesh:
-            self.field+=node.field * shape(node.position-self.position)
+            self.field+=node.field * Particle.shape(node.position-self.position)
     
     def velocity(self):
-        return momentum/mass
+        return self.momentum/self.mass
 
 

@@ -16,6 +16,8 @@ def plot(mesh, particles,delta_x,num_cells):
     
     for i, particle in enumerate(particles):
       print(f'{i}: pos: {particle.position} | momentum: {particle.momentum}')
+      
+      
     ax.axhline(y=0, color='black', linewidth=0.5)
     plt.xticks([i*delta_x for i in range(num_cells)])
     ax.set_xlabel('Position')
@@ -26,8 +28,11 @@ def plot(mesh, particles,delta_x,num_cells):
 
 def main():
    sim=Simulator(1,.1,5,5,1,1,1)
-   sim.initialize(0,0,[(.1,0),(.26,0),(.44,0),(.3,0),(.15,0)])
+   sim.initialize(0,0,[(.1,.1),(.26,0),(.44,0),(.3,0),(.15,0)])
 
+   plot(sim.mesh, sim.particles,sim.delta_x,sim.num_cells)
+   sim.step()
+   sim.step()
    plot(sim.mesh, sim.particles,sim.delta_x,sim.num_cells)
 
 
