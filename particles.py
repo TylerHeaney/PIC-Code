@@ -21,9 +21,9 @@ class Particle:
         self.position=position
         self.momentum=momentum
     
-    def aggregate_field(self,mesh):
+    def aggregate_field(self,mesh, delta_x):
         for node in mesh:
-            self.field+=node.field * Particle.shape(node.position-self.position)
+            self.field+=node.field * Particle.shape((node.position-self.position)/delta_x)
     
     def velocity(self):
         return self.momentum/self.mass
