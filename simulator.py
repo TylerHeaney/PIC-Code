@@ -108,6 +108,8 @@ class Simulator:
 
     def push(self):
         for particle in self.particles:
+            if particle.position < 0 or particle.position > self.num_cells*self.delta_x:
+                particle.momentum=-1*particle.momentum
             particle.momentum=particle.momentum+particle.charge*particle.field*self.delta_t
             particle.position=particle.position+particle.velocity()*self.delta_t
 
