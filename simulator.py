@@ -19,7 +19,7 @@ class Simulator:
 
 
     def create_particles(self,particle_num,particle_agg,particle_mass,particle_charge):
-        self.particles=[Particle(particle_mass,particle_charge,particle_agg) for p in range((int)(particle_num/particle_agg))]
+        self.particles=[Particle(particle_mass[p],particle_charge[p],particle_agg[p]) for p in range(particle_num)]
 
 
     def create_mesh(self,delta_x,num_cells):

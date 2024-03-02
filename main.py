@@ -12,7 +12,8 @@ def plot(mesh, particles,delta_x,num_cells):
   momenta = [particle.momentum for particle in particles]
   field=[n.field for n in mesh]
   fig, ax = plt.subplots()
-  ax.scatter(positions, [0]*len(positions), color='blue', label='Position')
+  ax.scatter(positions[:20], [0]*(int)(len(positions)/2), color='blue', label='Position: Protons')
+  ax.scatter(positions[20:],[0]*(int)(len(positions)/2), color='red', label='Position: Electrons')
   ax.plot(numpy.linspace(0,10,len(mesh)),field,linewidth=2)
   for i, particle in enumerate(particles):
     print(f'{i}: pos: {particle.position} | momentum: {particle.momentum}')
@@ -26,7 +27,7 @@ def plot(mesh, particles,delta_x,num_cells):
 
 
 def main():
-  sim=Simulator(.1,.1,100,3,1.67e-27,1.6022e-19,1)
+  sim=Simulator(.01,.1,100,40,[1.67e-27]*20+[9.11e-31]*20,[1.6022e-19]*20+[-1.6022e-19]*20,[1]*40)
   sim.initialize(0,0,[(.9,0),(1.0,0),(1.1,0)])
    
   while(1):
