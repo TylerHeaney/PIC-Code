@@ -9,22 +9,9 @@ import random
 
 matplotlib.use('QtAgg')
 
-def plot(mesh, particles,delta_x,num_cells):
-  positions = [particle.position for particle in particles]
-  momenta = [particle.momentum for particle in particles]
-  fig, ax = plt.subplots()
-  
-  for i, particle in enumerate(particles):
-    print(f'{i}: pos: {particle.position} | momentum: {particle.momentum}')
-      
-      
-  ax.set_xlabel('Position')
-  ax.legend()
-  plt.show()
-
 def anim():
   half=20
-  sim=Simulator(.001,.1,100,40,[1.67e-27]*half+[9.11e-31]*half,[1.6022e-19]*half+[-1.6022e-19]*half,[1]*half*2)
+  sim=Simulator(.001,.1,100,half*2,[1.67e-27]*half+[9.11e-31]*half,[1.6022e-19]*half+[-1.6022e-19]*half,[1]*half*2)
   sim.initialize(0,0,[(.9,0),(1.0,0),(1.1,0)])
 
   fig, ax = plt.subplots()
@@ -52,10 +39,6 @@ def anim():
     electrons,=ax.plot(x_e,[0]*(len(x_e)), 'o', color='red', label='Position: Electrons')
     field=[n.field for n in sim.mesh]
     f,=ax.plot(numpy.linspace(0,10,len(sim.mesh)),field,linewidth=2)
-    # protons.set_xdata([p.position for p in sim.particles[:half]])
-    # electrons.set_xdata([e.position for e in sim.particles[half:]])
-    # f.set_ydata([n.field for n in sim.mesh])
-    #return protons,electrons,f,
   
   anim=FuncAnimation(fig,update,frames=500,interval=50)
   anim.save('animation.gif', writer='imagemagick', fps=12)
@@ -63,11 +46,6 @@ def anim():
 
 def main():
   anim()
-  # while(1):
-  #   sim.step()
-  #   #print([n.field for n in sim.mesh])
-  #   print([p.momentum for p in sim.particles])
-  #   anim(sim.particles)
 
 
 if(__name__=="__main__"):
