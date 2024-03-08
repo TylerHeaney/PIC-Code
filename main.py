@@ -50,7 +50,7 @@ def anim():
     ax.set_xlim([0,cell_length*cell_number])
 
   anim=FuncAnimation(fig,update,frames=100,interval=50)
-  anim.save('animation.gif', writer='imagemagick', fps=12)
+  anim.save('animation.gif', writer='imagemagick', fps=1)
 
 def main():
   anim()
