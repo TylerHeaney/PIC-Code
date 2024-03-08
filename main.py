@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.animation import FuncAnimation
@@ -11,20 +11,22 @@ import cProfile
 matplotlib.use('QtAgg')
 
 def anim():
-  particle_num=1000
+  particle_num=500
   cell_length=.125
   cell_number=400
   timestep=.125
   momentum=1e-26
-
+  sd=momentum*.3
 
 
 
   half=(int)(particle_num/2)
   sim=Simulator(timestep,cell_length,cell_number,half*2,[1.67e-27]*half+[1.67e-27]*half,[1.6022e-19]*half+[-1.6022e-19]*half,[1]*half*2)
   # sim.initialize(0,0,[])
-  sim.initialize(0,0,[(random.random()*cell_length*cell_number,momentum+.2*momentum*random.random()) for _ in range(half)]+[(random.random()*cell_length*cell_number,-1*momentum-.2*momentum*random.random()) for _ in range(half)])
+  sim.initialize(0,0,[(random.random()*cell_length*cell_number,np.random.normal(momentum,sd)) for _ in range(half)]+[(random.random()*cell_length*cell_number,-1*np.random.normal(momentum,sd)) for _ in range(half)])
   fig, ax = plt.subplots()
+  for p in sim.particles:
+    p.momentum *= 1+.1*np.sin(2*np.pi*p.position/cell_number)
   ax.axhline(y=0, color='black', linewidth=0.5)
   plt.xticks([i*sim.delta_x for i in range(sim.num_cells)])
 

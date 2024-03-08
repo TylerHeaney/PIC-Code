@@ -72,12 +72,16 @@ class Simulator:
 
     def create_poisson_matrix(self):
         A=np.zeros((len(self.mesh),len(self.mesh)))
-        A[0,0]=1
+        A[0,0]=-2/self.delta_x**2
+        A[0,1]=1/self.delta_x**2
+        A[0,-1]=1/self.delta_x**2
         for i in range(1,len(self.mesh)-1):
             A[i,i-1]=1/self.delta_x**2
             A[i,i]=-2/self.delta_x**2
             A[i,i+1]=1/self.delta_x**2
-        A[-1,-1]=1
+        A[-1,-1]=-2/self.delta_x**2
+        A[-1,0]=1/self.delta_x**2
+        A[-1,-2]=1/self.delta_x**2
         return A
 
 
