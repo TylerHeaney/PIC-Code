@@ -82,7 +82,7 @@ class Simulator:
 
     def field_solve(self):
         self.mesh.zero_field()
-        potential_vector=spsolve(self.A,self.charge_vector(),permc_spec="MMD_AT_PLUS_A")
+        potential_vector=spsolve(self.A,self.charge_vector()-np.sum(self.charge_vector())/self.num_cells,permc_spec="MMD_AT_PLUS_A")
         self.find_E(potential_vector)
 
 
