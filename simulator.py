@@ -2,8 +2,6 @@ import numpy as np
 from particles import ParticleHandler
 from mesh import Mesh
 import random
-import scipy.sparse as sp
-from scipy.sparse.linalg import spsolve
 
 
 epsilon_naught=8.85418e-12
@@ -12,7 +10,7 @@ class Simulator:
     """The actual simulator"""
 
     def shapes(self,distances):
-        return abs(distances)/self.delta_x
+        return np.abs(distances)/self.delta_x
 
     def __init__(self,delta_t,delta_x,num_cells,particle_num,particle_mass,particle_charge,particle_agg):
         self.step_num=0
@@ -23,31 +21,22 @@ class Simulator:
         self.mesh=Mesh(delta_x,num_cells)
         self.particle_num=particle_num
 
-        self.A,self.FD = self.create_matrices()
+        self.A = self.create_poisson_matrix()
 
 
-    def create_matrices(self):
-        e=np.ones(self.num_cells)
-
-        diags = np.array([-1,0,1])
-        vals  = np.vstack((e,-2*e,e))
-        A = sp.spdiags(vals, diags, self.num_cells, self.num_cells)
-        A = sp.lil_matrix(A)
-        A[0,self.num_cells-1] = 1
-        A[self.num_cells-1,0] = 1
-        A /= self.delta_x**2
-        A = sp.csr_matrix(A)
-
-        diags = np.array([-1,1])
-        vals = np.vstack((-1*e,e))
-        FD = sp.spdiags(vals,diags,self.num_cells,self.num_cells)
-        FD = sp.lil_matrix(FD)
-        FD[0,self.num_cells-1]=1
-        FD[self.num_cells-1,0]=1
-        FD /= (2*self.delta_x)
-        FD = sp.csr_matrix(FD)
-
-        return A,FD
+    def create_poisson_matrix(self):
+        A=np.zeros((self.num_cells,self.num_cells))
+        A[0,0]=-2/self.delta_x**2
+        A[0,1]=1/self.delta_x**2
+        A[0,-1]=1/self.delta_x**2
+        for i in range(1,self.num_cells-1):
+            A[i,i-1]=1/self.delta_x**2
+            A[i,i]=-2/self.delta_x**2
+            A[i,i+1]=1/self.delta_x**2
+        A[-1,-1]=-2/self.delta_x**2
+        A[-1,0]=1/self.delta_x**2
+        A[-1,-2]=1/self.delta_x**2
+        return A
 
 
     def initialize(self, lhw, rhw, positions, momenta):
@@ -82,7 +71,7 @@ class Simulator:
 
     def field_solve(self):
         self.mesh.zero_field()
-        potential_vector=spsolve(self.A,self.charge_vector(),permc_spec="MMD_AT_PLUS_A")
+        potential_vector=np.linalg.solve(self.A,self.charge_vector())
         self.find_E(potential_vector)
 
 
@@ -92,10 +81,10 @@ class Simulator:
     
 
     def find_E(self, potential_vector):
-
-        self.mesh.fields = -1 * self.FD @ potential_vector
-        
-        
+        self.mesh.fields[0]=-1*(potential_vector[1]-potential_vector[-1])/2/self.delta_x
+        for i in range(1,self.num_cells-1):
+            self.mesh.fields[i]=-1*(potential_vector[i+1]-potential_vector[i-1])/2/self.delta_x
+        self.mesh.fields[-1]=-1*(potential_vector[0]-potential_vector[-2])/2/self.delta_x
 
 
     def gather(self,left_nodes,right_nodes,left_weights,right_weights):

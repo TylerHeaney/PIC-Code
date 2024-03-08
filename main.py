@@ -11,17 +11,17 @@ import cProfile
 matplotlib.use('QtAgg')
 
 def anim():
-  particle_num=4000
+  particle_num=5000
   cell_length=.125
   cell_number=400
   timestep=.125
-  momentum=4e-29
+  momentum=1e-26
   sd=momentum*.3
 
 
 
   half=(int)(particle_num/2)
-  sim=Simulator(timestep,cell_length,cell_number,half*2,[1.67e-27]*half+[1.67e-27]*half,[1.6022e-19]*half+[1.6022e-19]*half,[1]*half*2)
+  sim=Simulator(timestep,cell_length,cell_number,half*2,[1.67e-27]*half+[1.67e-27]*half,[-1.6022e-19]*half+[1.6022e-19]*half,[1]*half*2)
   # sim.initialize(0,0,[])
   sim.initialize(0,0,[random.random()*cell_length*cell_number for _ in range(half*2)], [np.random.normal(momentum,sd) for _ in range(half)]+[np.random.normal(momentum,sd)*-1 for _ in range(half)])
   fig, ax = plt.subplots()
