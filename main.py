@@ -11,48 +11,48 @@ import cProfile
 matplotlib.use('QtAgg')
 
 def anim():
-  particle_num=500
+  particle_num=4000
   cell_length=.125
   cell_number=400
   timestep=.125
-  momentum=1e-26
+  momentum=4e-29
   sd=momentum*.3
 
 
 
   half=(int)(particle_num/2)
-  sim=Simulator(timestep,cell_length,cell_number,half*2,[1.67e-27]*half+[1.67e-27]*half,[1.6022e-19]*half+[-1.6022e-19]*half,[1]*half*2)
+  sim=Simulator(timestep,cell_length,cell_number,half*2,[1.67e-27]*half+[1.67e-27]*half,[1.6022e-19]*half+[1.6022e-19]*half,[1]*half*2)
   # sim.initialize(0,0,[])
-  sim.initialize(0,0,[(random.random()*cell_length*cell_number,np.random.normal(momentum,sd)) for _ in range(half)]+[(random.random()*cell_length*cell_number,-1*np.random.normal(momentum,sd)) for _ in range(half)])
+  sim.initialize(0,0,[random.random()*cell_length*cell_number for _ in range(half*2)], [np.random.normal(momentum,sd) for _ in range(half)]+[np.random.normal(momentum,sd)*-1 for _ in range(half)])
   fig, ax = plt.subplots()
-  for p in sim.particles:
-    p.momentum *= 1+.1*np.sin(2*np.pi*p.position/cell_number)
+  for i in range(len(sim.particles.momenta)):
+    sim.particles.momenta[i] *= 1+.1*np.sin(2*np.pi*sim.particles.positions[i]/cell_number)
   ax.axhline(y=0, color='black', linewidth=0.5)
   plt.xticks([i*sim.delta_x for i in range(sim.num_cells)])
 
-  x_p=[p.position for p in sim.particles[:half]]
-  p_p=[p.momentum for p in sim.particles[:half]]
-  x_e=[e.position for e in sim.particles[half:]]
-  p_e=[e.momentum for e in sim.particles[half:]]
+  x_p=sim.particles.positions[:half]
+  p_p=sim.particles.momenta[:half]
+  x_e=sim.particles.positions[half:]
+  p_e=sim.particles.momenta[half:]
   print(p_p)
-  protons,=ax.plot(x_p, p_p, 'o', color='blue', label='Position: Protons')
-  electrons,=ax.plot(x_e,p_e, 'o', color='red', label='Position: Electrons')
+  protons,=ax.plot(x_p, p_p, 'o', markersize=.4, color='blue', label='Position: Protons')
+  electrons,=ax.plot(x_e,p_e, 'o', markersize=.4, color='red', label='Position: Electrons')
   #field=[n.field for n in sim.mesh]
   #f,=ax.plot(numpy.linspace(0,10,len(sim.mesh)),field,linewidth=2)
 
   def update(frame):
-    for i in range(2):
+    for i in range(1):
       sim.step()
     ax.cla()
     
-    x_p=[p.position for p in sim.particles[:half]]
-    p_p=[p.momentum for p in sim.particles[:half]]
-    x_e=[e.position for e in sim.particles[half:]]
-    p_e=[e.momentum for e in sim.particles[half:]]
+    x_p=sim.particles.positions[:half]
+    p_p=sim.particles.momenta[:half]
+    x_e=sim.particles.positions[half:]
+    p_e=sim.particles.momenta[half:]
     ax.axhline(y=0, color='black', linewidth=0.5)
     plt.xticks([i*sim.delta_x for i in range(0,sim.num_cells,50)])
-    protons,=ax.plot(x_p, p_p, 'o', color='blue', label='Position: Protons')
-    electrons,=ax.plot(x_e,p_e, 'o', color='red', label='Position: Electrons')
+    protons,=ax.plot(x_p, p_p, 'o', markersize=.4, color='blue', label='Position: Protons')
+    electrons,=ax.plot(x_e,p_e, 'o', markersize=.4, color='red', label='Position: Electrons')
     ax.set_ylim([-1e-25,1e-25])
     ax.set_xlim([0,cell_length*cell_number])
     #protons,=ax.plot(x_p, [0]*(len(x_p)), 'o', color='blue', label='Position: Protons')

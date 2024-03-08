@@ -1,7 +1,9 @@
 import numpy as np
-from particles import Particle
-from mesh import Node
+from particles import ParticleHandler
+from mesh import Mesh
 import random
+import scipy.sparse as sp
+from scipy.sparse.linalg import spsolve
 
 
 epsilon_naught=8.85418e-12
@@ -9,112 +11,102 @@ epsilon_naught=8.85418e-12
 class Simulator:
     """The actual simulator"""
 
+    def shapes(self,distances):
+        return abs(distances)/self.delta_x
+
     def __init__(self,delta_t,delta_x,num_cells,particle_num,particle_mass,particle_charge,particle_agg):
         self.step_num=0
         self.delta_t=delta_t
         self.delta_x=delta_x
         self.num_cells=num_cells
-        self.create_particles(particle_num,particle_agg,particle_mass,particle_charge)
-        self.create_mesh(delta_x,num_cells)
+        self.particles=ParticleHandler(particle_mass,particle_charge,particle_agg)
+        self.mesh=Mesh(delta_x,num_cells)
+        self.particle_num=particle_num
+
+        self.A,self.FD = self.create_matrices()
 
 
-    def create_particles(self,particle_num,particle_agg,particle_mass,particle_charge):
-        self.particles=[Particle(particle_mass[p],particle_charge[p],particle_agg[p]) for p in range(particle_num)]
+    def create_matrices(self):
+        e=np.ones(self.num_cells)
+
+        diags = np.array([-1,0,1])
+        vals  = np.vstack((e,-2*e,e))
+        A = sp.spdiags(vals, diags, self.num_cells, self.num_cells)
+        A = sp.lil_matrix(A)
+        A[0,self.num_cells-1] = 1
+        A[self.num_cells-1,0] = 1
+        A /= self.delta_x**2
+        A = sp.csr_matrix(A)
+
+        diags = np.array([-1,1])
+        vals = np.vstack((-1*e,e))
+        FD = sp.spdiags(vals,diags,self.num_cells,self.num_cells)
+        FD = sp.lil_matrix(FD)
+        FD[0,self.num_cells-1]=1
+        FD[self.num_cells-1,0]=1
+        FD /= (2*self.delta_x)
+        FD = sp.csr_matrix(FD)
+
+        return A,FD
 
 
-    def create_mesh(self,delta_x,num_cells):
-        self.mesh = [Node(n*self.delta_x) for n in range(self.num_cells)]
-        
-
-    def initialize(self, lhw, rhw, positions_and_momentums):
-        if(len(positions_and_momentums)!=len(self.particles)): # use random numbers
-            for p in self.particles:
-                p.initialize(random.random()*self.delta_x*self.num_cells/2+.25*self.delta_x*self.num_cells,0)
+    def initialize(self, lhw, rhw, positions, momenta):
+        if(len(positions)!=self.particle_num or len(momenta)!=self.particle_num): # use random numbers
+            self.particles.initialize([random.random()*self.delta_x*self.num_cells for i in range(self.particle_num)],0)
         else:
-            for i in range(len(self.particles)):
-                self.particles[i].initialize(*positions_and_momentums[i])
+            self.particles.initialize(positions,momenta)
         
         self.lhw=lhw
-        self.mesh[0].charge=lhw
+        self.mesh.charges[0]=lhw
         self.rhw=rhw
-        self.mesh[-1].charge=rhw
+        self.mesh.charges[-1]=rhw
+
 
     def step(self):
-        self.scatter()
+        left_nodes=np.floor(self.particles.positions/self.delta_x).astype(int)
+        right_nodes=left_nodes+1
+        left_weights=self.shapes(left_nodes*self.delta_x-self.particles.positions)
+        right_weights=self.shapes(right_nodes*self.delta_x-self.particles.positions)
+        right_nodes=np.mod(right_nodes,self.num_cells)
+        self.scatter(left_nodes,right_nodes,left_weights,right_weights)
         self.field_solve()
-        self.gather()
+        self.gather(left_nodes,right_nodes,left_weights,right_weights)
         self.push()
         self.step_num+=1
    
    
-    def scatter(self):
-        self.zero_charge()
-        for node in self.mesh:
-            node.aggregate_charge(self.particles,self.delta_x)
+    def scatter(self,left_nodes,right_nodes,left_weights,right_weights):
+        self.mesh.zero_charge()
+        self.mesh.aggregate_charge(left_nodes,right_nodes,left_weights,right_weights,self.particles)
     
 
-    def zero_charge(self):
-        for node in self.mesh:
-            node.charge=0
-
-
     def field_solve(self):
-        self.mesh_zero_field()
-        A=self.create_poisson_matrix()
-        potential_vector=np.linalg.solve(A,self.charge_vector())
+        self.mesh.zero_field()
+        potential_vector=spsolve(self.A,self.charge_vector(),permc_spec="MMD_AT_PLUS_A")
         self.find_E(potential_vector)
 
 
-    def mesh_zero_field(self):
-        for node in self.mesh:
-            node.field=0
-
-
-    def create_poisson_matrix(self):
-        A=np.zeros((len(self.mesh),len(self.mesh)))
-        A[0,0]=-2/self.delta_x**2
-        A[0,1]=1/self.delta_x**2
-        A[0,-1]=1/self.delta_x**2
-        for i in range(1,len(self.mesh)-1):
-            A[i,i-1]=1/self.delta_x**2
-            A[i,i]=-2/self.delta_x**2
-            A[i,i+1]=1/self.delta_x**2
-        A[-1,-1]=-2/self.delta_x**2
-        A[-1,0]=1/self.delta_x**2
-        A[-1,-2]=1/self.delta_x**2
-        return A
-
-
     def charge_vector(self):
-        b=np.zeros(len(self.mesh))
-        for i in range(len(self.mesh)):
-            b[i]=-self.mesh[i].charge/epsilon_naught
+        b=-1*self.mesh.charges/epsilon_naught
         return b
     
 
     def find_E(self, potential_vector):
-        self.mesh[0].field=self.lhw
-        for i in range(1,len(self.mesh)-1):
-            self.mesh[i].field=-1*(potential_vector[i+1]-potential_vector[i-1])/2/self.delta_x
-        self.mesh[-1].field=self.rhw
+
+        self.mesh.fields = -1 * self.FD @ potential_vector
+        
+        
 
 
-    def gather(self):
-        self.zero_field()
-        for particle in self.particles:
-            particle.aggregate_field(self.mesh,self.delta_x)
-    
-
-    def zero_field(self):
-        for p in self.particles:
-            p.field=0
+    def gather(self,left_nodes,right_nodes,left_weights,right_weights):
+        self.particles.zero_field()
+        self.particles.aggregate_field(left_nodes,right_nodes,left_weights,right_weights, self.mesh, self.delta_x)
 
 
     def push(self):
-        for particle in self.particles:
-            particle.momentum=particle.momentum+particle.charge*particle.field*self.delta_t
-            particle.position=particle.position+particle.velocity()*self.delta_t
-            particle.position=particle.position % (self.num_cells*self.delta_x)
+        self.particles.momenta+=self.particles.charges*self.particles.fields*self.delta_t
+        self.particles.positions+=self.particles.velocities()*self.delta_t
+        self.particles.positions=np.mod(self.particles.positions, self.num_cells*self.delta_x)
         
 
 
