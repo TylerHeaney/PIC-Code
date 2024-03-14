@@ -42,7 +42,7 @@ class Simulator:
         vals = np.vstack((-1*e,e))
         FD = sp.spdiags(vals,diags,self.num_cells,self.num_cells)
         FD = sp.lil_matrix(FD)
-        FD[0,self.num_cells-1]=1
+        FD[0,self.num_cells-1]=-1
         FD[self.num_cells-1,0]=1
         FD /= (2*self.delta_x)
         FD = sp.csr_matrix(FD)
