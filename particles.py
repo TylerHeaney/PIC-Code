@@ -8,9 +8,10 @@ class ParticleHandler:
         self.masses=np.array(masses)*agg
         self.charges=np.array(charges)*agg
         self.agg=agg
-        self.positions=np.zeros(len(masses))
-        self.momenta=np.zeros(len(masses))
-        self.fields=np.zeros(len(masses))
+        self.positions=np.zeros((len(masses),2))
+        self.momenta=np.zeros((len(masses),2))
+        self.fields_x=np.zeros((len(masses),2))
+        self.fields_y=np.zeros((len(masses),2))
         self.number=len(masses)
 
     def initialize(self, positions, momenta):
@@ -21,12 +22,15 @@ class ParticleHandler:
         self.momenta=np.array(momenta)
 
     def zero_field(self):
-        self.fields*=0
+        self.fields_x*=0
+        self.fields_y*=0
 
-    def aggregate_field(self,left_nodes,right_nodes,left_weights,right_weights,mesh,delta_x):
-        for i in range(len(left_nodes)):
-            self.fields[i]+=mesh.fields[left_nodes[i]] * left_weights[i]
-            self.fields[i]+=mesh.fields[right_nodes[i]] * right_weights[i]
+    def aggregate_field(self, lower_left,rel_coord,mesh,delta_x):
+        for i in range(len(weights)):
+            
+
+            # self.fields[i]+=mesh.fields[left_nodes[i]] * left_weights[i]
+            # self.fields[i]+=mesh.fields[right_nodes[i]] * right_weights[i]
 
     def size(self):
         return len(self.masses)

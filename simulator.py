@@ -12,7 +12,7 @@ class Simulator:
     """The actual simulator"""
 
     def shapes(self,distances):
-        return abs(distances)/self.delta_x
+        
 
     def __init__(self,delta_t,delta_x,num_cells,particle_num,particle_mass,particle_charge,particle_agg):
         self.step_num=0
@@ -50,24 +50,29 @@ class Simulator:
         return A,FD
 
 
-    def initialize(self, lhw, rhw, positions, momenta):
+    def initialize(self, positions, momenta):
         if(len(positions)!=self.particle_num or len(momenta)!=self.particle_num): # use random numbers
-            self.particles.initialize([random.random()*self.delta_x*self.num_cells for i in range(self.particle_num)],0)
+            self.particles.initialize([[random.random()*self.delta_x*self.num_cells]*2 for i in range(self.particle_num)],0)
         else:
             self.particles.initialize(positions,momenta)
         
-        self.lhw=lhw
-        self.mesh.charges[0]=lhw
-        self.rhw=rhw
-        self.mesh.charges[-1]=rhw
+
 
 
     def step(self):
-        left_nodes=np.floor(self.particles.positions/self.delta_x).astype(int)
-        right_nodes=left_nodes+1
-        left_weights=self.shapes(left_nodes*self.delta_x-self.particles.positions)
-        right_weights=self.shapes(right_nodes*self.delta_x-self.particles.positions)
-        right_nodes=np.mod(right_nodes,self.num_cells)
+
+        left_col=np.floor(self.particles.positions[:,0]/self.delta_x).astype(int)
+        bottom_row=np.floor(self.particles.positions[:,1]/self.delta_x).astype(int)
+        bottom_left=np.column_stack((left_col,bottom_row))
+        # bilinear interpolation next
+
+        # left_nodes=np.floor(self.particles.positions/self.delta_x).astype(int)
+        # right_nodes=left_nodes+1
+        # left_weights=self.shapes(left_nodes*self.delta_x-self.particles.positions)
+        # right_weights=self.shapes(right_nodes*self.delta_x-self.particles.positions)
+        # right_nodes=np.mod(right_nodes,self.num_cells)
+
+
         self.scatter(left_nodes,right_nodes,left_weights,right_weights)
         self.field_solve()
         self.gather(left_nodes,right_nodes,left_weights,right_weights)
