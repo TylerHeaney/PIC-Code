@@ -11,10 +11,10 @@ matplotlib.use('QtAgg')
 
 def two_stream():
   particle_num=40000
-  cell_length=.125
+  cell_length=.025
   cell_number=400
   timestep=.06
-  momentum=4e-26
+  momentum=1e-26
   sd=momentum*.1
 
 
@@ -28,11 +28,11 @@ def two_stream():
 
 def rand():
   particle_num=40000
-  cell_length=.125
+  cell_length=.025
   cell_number=400
   timestep=.06
   momentum=0
-  sd=1e-26
+  sd=5e-27
 
   half=(int)(particle_num/2)
   sim=Simulator(timestep,cell_length,cell_number,particle_num,[1.67e-27]*particle_num,[1.6022e-19]*half+[-1.6022e-19]*half,[1]*particle_num)
@@ -86,8 +86,8 @@ def main():
   update=anim(ax, sim)
   
   ani=FuncAnimation(fig,update,frames=500,interval=50)
-  ani.save('animation.gif', writer='imagemagick', fps=12)
-  # plt.show()
+  # ani.save('animation.gif', writer='imagemagick', fps=12)
+  plt.show()
   fig, ax = plt.subplots()
   ax.cla()
   global x
@@ -196,7 +196,8 @@ def anim(ax, sim):
     ax.cla()
     
     global x
-    x.append([np.sum(.5*1.67e-27*np.abs(sim.particles.velocities()[half:])),np.sum(.5*1.67e-27*np.abs(sim.particles.velocities()[:half]))])
+    # x.append([np.sum(.5*1.67e-27*np.abs(sim.particles.velocities()[half:])),np.sum(.5*1.67e-27*np.abs(sim.particles.velocities()[:half]))])
+    x.append([sim.particles.positions[0],sim.particles.velocities()[0]])
 
     x_p=sim.particles.positions[:half]
     p_p=sim.particles.velocities()[:half]
@@ -207,7 +208,8 @@ def anim(ax, sim):
     # ax.plot(sim.particles.positions,sim.particles.fields,'o',markersize=.4)
     protons,=ax.plot(x_p, p_p, 'o', markersize=.4, color='blue', label='Position: Protons')
     electrons,=ax.plot(x_e,p_e, 'o', markersize=.4, color='red', label='Position: Electrons')
-    ax.set_ylim([-1e2,1e2])
+    ax.plot([i[0] for i in x],[i[1] for i in x],'-',markersize=.4)
+    ax.set_ylim([-1e1,1e1])
     # ax.set_ylim([-2e-6,2e-6])
     ax.set_xlim([0,sim.delta_x*sim.num_cells])
 
@@ -216,6 +218,6 @@ def anim(ax, sim):
 x=[]
 
 if(__name__=="__main__"):
-  # main()
-  png()
+  main()
+  # png()
   #cProfile.run('main()')
