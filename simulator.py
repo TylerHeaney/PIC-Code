@@ -12,7 +12,7 @@ class Simulator:
     """The actual simulator"""
 
     def shapes(self,distances):
-        
+       pass 
 
     def __init__(self,delta_t,delta_x,num_cells,particle_num,particle_mass,particle_charge,particle_agg):
         self.step_num=0
@@ -73,16 +73,16 @@ class Simulator:
         # right_nodes=np.mod(right_nodes,self.num_cells)
 
 
-        self.scatter(left_nodes,right_nodes,left_weights,right_weights)
-        self.field_solve()
-        self.gather(left_nodes,right_nodes,left_weights,right_weights)
-        self.push()
+        self.scatter(bottom_left)
+        # self.field_solve()
+        self.gather(bottom_left)
+        # self.push()
         self.step_num+=1
    
    
-    def scatter(self,left_nodes,right_nodes,left_weights,right_weights):
+    def scatter(self,bottom_left):
         self.mesh.zero_charge()
-        self.mesh.aggregate_charge(left_nodes,right_nodes,left_weights,right_weights,self.particles)
+        self.mesh.aggregate_charge(bottom_left,self.particles)
     
 
     def field_solve(self):
@@ -103,9 +103,9 @@ class Simulator:
         
 
 
-    def gather(self,left_nodes,right_nodes,left_weights,right_weights):
+    def gather(self,bottom_left):
         self.particles.zero_field()
-        self.particles.aggregate_field(left_nodes,right_nodes,left_weights,right_weights, self.mesh, self.delta_x)
+        self.particles.aggregate_field(bottom_left, self.mesh, self.delta_x)
 
 
     def push(self):

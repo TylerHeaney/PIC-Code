@@ -96,6 +96,33 @@ def main():
   plt.show()
 
 
+def two_d_sim():
+  particle_num=40
+  cell_length=.125
+  cell_number=40
+  timestep=.06
+  momentum=4e-26
+  sd=.3*momentum
+
+  half=(int)(particle_num/2)
+  sim=Simulator(timestep,cell_length,cell_number,half*2,[1.67e-27]*half+[1.67e-27]*half,[1.6022e-19]*half+[-1.6022e-19]*half,[1]*half*2)
+  sim.initialize([[random.random()*cell_length*cell_number,random.random()*cell_length*cell_number] for _ in range(particle_num)], [[np.random.normal(momentum,sd),np.random.normal(momentum,sd)] for _ in range(particle_num)])
+  for i in range(len(sim.particles.momenta)):
+    sim.particles.momenta[i] *= 1+.1*np.sin(2*np.pi*sim.particles.positions[i]/cell_number/cell_length)
+  return sim 
+
+
+def two_d():
+  fig, ax = plt.subplots()
+  ax.axhline(y=0,color='black',linewidth=.5)
+  sim = two_d_sim()
+
+  plt.xticks([i*sim.delta_x for i in range(sim.num_cells)])
+  update=anim(ax, sim)
+  
+  ani=FuncAnimation(fig,update,frames=500,interval=50)
+  ani.save('2Danimation.gif', writer='imagemagick', fps=12)
+  plt.show()
 
 
 def anim(ax, sim):
@@ -103,11 +130,9 @@ def anim(ax, sim):
   half=(int)(sim.particles.number / 2)
 
   x_p=sim.particles.positions[:half]
-  p_p=sim.particles.velocities()[:half]
   x_e=sim.particles.positions[half:]
-  p_e=sim.particles.velocities()[half:]
-  protons,=ax.plot(x_p, p_p, 'o', markersize=.4, color='blue', label='Position: Protons')
-  electrons,=ax.plot(x_e,p_e, 'o', markersize=.4, color='red', label='Position: Electrons')
+  protons,=ax.plot(x_p[:,0], x_p[:,1], 'o', markersize=.4, color='blue', label='Position: Protons')
+  electrons,=ax.plot(x_e[:,0],x_e[:,1], 'o', markersize=.4, color='red', label='Position: Electrons')
 
   
 
@@ -116,19 +141,14 @@ def anim(ax, sim):
       sim.step()
     ax.cla()
     
-    global x
-    x.append([np.sum(.5*1.67e-27*np.abs(sim.particles.velocities()[half:])),np.sum(.5*1.67e-27*np.abs(sim.particles.velocities()[:half]))])
-
     x_p=sim.particles.positions[:half]
-    p_p=sim.particles.velocities()[:half]
     x_e=sim.particles.positions[half:]
-    p_e=sim.particles.velocities()[half:]
     ax.axhline(y=0, color='black', linewidth=0.5)
     plt.xticks([i*sim.delta_x for i in range(0,sim.num_cells,50)])
     # ax.plot(sim.particles.positions,sim.particles.fields,'o',markersize=.4)
-    protons,=ax.plot(x_p, p_p, 'o', markersize=.4, color='blue', label='Position: Protons')
-    electrons,=ax.plot(x_e,p_e, 'o', markersize=.4, color='red', label='Position: Electrons')
-    ax.set_ylim([-1e2,1e2])
+    protons,=ax.plot(x_p[:,0], x_p[:,0], 'o', markersize=.4, color='blue', label='Position: Protons')
+    electrons,=ax.plot(x_e[:,0],x_e[:,0], 'o', markersize=.4, color='red', label='Position: Electrons')
+    ax.set_ylim([0,sim.delta_x*sim.num_cells])
     # ax.set_ylim([-2e-6,2e-6])
     ax.set_xlim([0,sim.delta_x*sim.num_cells])
 
@@ -137,5 +157,6 @@ def anim(ax, sim):
 x=[]
 
 if(__name__=="__main__"):
-  main()
+  # main()
+  two_d()
   #cProfile.run('main()')

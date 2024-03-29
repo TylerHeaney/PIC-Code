@@ -15,9 +15,9 @@ class Mesh:
         self.fields_x*=0
         self.fields_y*=0
     
-    def aggregate_charge(self, surrounding_nodes, surrounding_wieghts, particles): # surrounding_* is an array of 4-tuples, in order of top left, top right, bottom left, bottom right
+    def aggregate_charge(self, bottom_left, particles): # surrounding_* is an array of 4-tuples, in order of top left, top right, bottom left, bottom right
         for i in range(particles.number):
-            
+           pass 
 
 
 

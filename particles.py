@@ -25,9 +25,9 @@ class ParticleHandler:
         self.fields_x*=0
         self.fields_y*=0
 
-    def aggregate_field(self, lower_left,rel_coord,mesh,delta_x):
-        for i in range(len(weights)):
-            
+    def aggregate_field(self, bottom_left,mesh,delta_x):
+        for i in range(len([])):
+            pass
 
             # self.fields[i]+=mesh.fields[left_nodes[i]] * left_weights[i]
             # self.fields[i]+=mesh.fields[right_nodes[i]] * right_weights[i]
