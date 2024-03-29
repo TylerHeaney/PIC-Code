@@ -96,6 +96,85 @@ def main():
   plt.show()
 
 
+def png():
+  fig, ax = plt.subplots()
+  ax.axhline(y=0, color='black', linewidth=0.5)
+  sim = two_stream()
+  plt.xticks([i*sim.delta_x for i in range(sim.num_cells)])
+
+  half=(int)(sim.particles.number / 2)
+
+  sim.step()
+  
+  global x
+
+  x_p=sim.particles.positions[:half]
+  p_p=sim.particles.velocities()[:half]
+  x_e=sim.particles.positions[half:]
+  p_e=sim.particles.velocities()[half:]
+  ax.axhline(y=0, color='black', linewidth=0.5)
+  plt.xticks([i*sim.delta_x for i in range(0,sim.num_cells,50)])
+  # ax.plot(sim.particles.positions,sim.particles.fields,'o',markersize=.4)
+  protons,=ax.plot(x_p, p_p, 'o', markersize=.4, color='blue', label='Position: Protons')
+  electrons,=ax.plot(x_e,p_e, 'o', markersize=.4, color='red', label='Position: Electrons')
+  ax.set_ylim([-1e2,1e2])
+  # ax.set_ylim([-2e-6,2e-6])
+  ax.set_xlim([0,sim.delta_x*sim.num_cells])
+  plt.savefig("t0.png",bbox_inches='tight')
+  plt.cla()
+  plt.plot([i*sim.delta_x for i in range(len(sim.mesh.fields))],sim.mesh.fields,'-',markersize=.4)
+  ax.set_ylim([-2e-6,2e-6])
+  plt.savefig("f0.png",bbox_inches='tight')
+  # plt.show()
+  plt.cla()
+  for i in range(10):
+    sim.step()
+    x.append([np.sum(.5*1.67e-27*np.abs(sim.particles.velocities()[half:])),np.sum(.5*1.67e-27*np.abs(sim.particles.velocities()[:half]))])
+  
+
+  x_p=sim.particles.positions[:half]
+  p_p=sim.particles.velocities()[:half]
+  x_e=sim.particles.positions[half:]
+  p_e=sim.particles.velocities()[half:]
+  ax.axhline(y=0, color='black', linewidth=0.5)
+  plt.xticks([i*sim.delta_x for i in range(0,sim.num_cells,50)])
+  # ax.plot(sim.particles.positions,sim.particles.fields,'o',markersize=.4)
+  protons,=ax.plot(x_p, p_p, 'o', markersize=.4, color='blue', label='Position: Protons')
+  electrons,=ax.plot(x_e,p_e, 'o', markersize=.4, color='red', label='Position: Electrons')
+  ax.set_ylim([-1e2,1e2])
+  # ax.set_ylim([-2e-6,2e-6])
+  ax.set_xlim([0,sim.delta_x*sim.num_cells])
+  plt.savefig("t1.png",bbox_inches='tight')
+  plt.cla()
+  plt.plot([i*sim.delta_x for i in range(len(sim.mesh.fields))],sim.mesh.fields,'-',markersize=.4)
+  ax.set_ylim([-2e-6,2e-6])
+  plt.savefig("f1.png",bbox_inches='tight')
+  # plt.show()
+
+  plt.cla()
+  for i in range(90):
+    sim.step()
+    x.append([np.sum(.5*1.67e-27*np.abs(sim.particles.velocities()[half:])),np.sum(.5*1.67e-27*np.abs(sim.particles.velocities()[:half]))])
+  
+  x_p=sim.particles.positions[:half]
+  p_p=sim.particles.velocities()[:half]
+  x_e=sim.particles.positions[half:]
+  p_e=sim.particles.velocities()[half:]
+  ax.axhline(y=0, color='black', linewidth=0.5)
+  plt.xticks([i*sim.delta_x for i in range(0,sim.num_cells,50)])
+  # ax.plot(sim.particles.positions,sim.particles.fields,'o',markersize=.4)
+  protons,=ax.plot(x_p, p_p, 'o', markersize=.4, color='blue', label='Position: Protons')
+  electrons,=ax.plot(x_e,p_e, 'o', markersize=.4, color='red', label='Position: Electrons')
+  ax.set_ylim([-1e2,1e2])
+  # ax.set_ylim([-2e-6,2e-6])
+  ax.set_xlim([0,sim.delta_x*sim.num_cells])
+  plt.savefig("t2.png",bbox_inches='tight')
+  plt.cla()
+  plt.plot([i*sim.delta_x for i in range(len(sim.mesh.fields))],sim.mesh.fields,'-',markersize=.4)
+  ax.set_ylim([-2e-6,2e-6])
+  plt.savefig("f2.png",bbox_inches='tight')
+  plt.show()
+
 
 
 def anim(ax, sim):
@@ -137,5 +216,6 @@ def anim(ax, sim):
 x=[]
 
 if(__name__=="__main__"):
-  main()
+  # main()
+  png()
   #cProfile.run('main()')
