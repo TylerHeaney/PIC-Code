@@ -6,7 +6,7 @@ import scipy.sparse as sp
 from scipy.sparse.linalg import spsolve
 
 
-epsilon_naught=8.85418e-12
+epsilon_naught=8.85418e-12/100
 
 class Simulator:
     """The actual simulator"""
