@@ -10,8 +10,7 @@ class ParticleHandler:
         self.agg=agg
         self.positions=np.zeros((len(masses),2))
         self.momenta=np.zeros((len(masses),2))
-        self.fields_x=np.zeros((len(masses),2))
-        self.fields_y=np.zeros((len(masses),2))
+        self.fields=np.zeros((len(masses),2))
         self.number=len(masses)
 
     def initialize(self, positions, momenta):
@@ -22,12 +21,18 @@ class ParticleHandler:
         self.momenta=np.array(momenta)
 
     def zero_field(self):
-        self.fields_x*=0
-        self.fields_y*=0
+        self.fields*=0
 
-    def aggregate_field(self, bottom_left,mesh,delta_x):
-        for i in range(len([])):
-            pass
+    def aggregate_field(self, bottom_left,blw,brw,tlw,trw,mesh,delta_x):
+        bottom_right=(bottom_left+[1,0])%mesh.cell_number
+        top_left=(bottom_left+[0,1])%mesh.cell_number
+        top_right=(bottom_left+[1,1])%mesh.cell_number
+        for i in range(len(bottom_left)):
+            self.fields[i]+=mesh.fields[bottom_left[i][0],bottom_left[i][1]] * blw[i]
+            self.fields[i]+=mesh.fields[(bottom_left[i][0]+1)%mesh.cell_number,bottom_left[i][1]] * brw[i]
+            self.fields[i]+=mesh.fields[bottom_left[i][0],(bottom_left[i][1]+1)%mesh.cell_number] * tlw[i]
+            self.fields[i]+=mesh.fields[(bottom_left[i][0]+1)%mesh.cell_number,(bottom_left[i][1]+1)%mesh.cell_number] * trw[i]
+            
 
             # self.fields[i]+=mesh.fields[left_nodes[i]] * left_weights[i]
             # self.fields[i]+=mesh.fields[right_nodes[i]] * right_weights[i]
@@ -36,4 +41,4 @@ class ParticleHandler:
         return len(self.masses)
 
     def velocities(self):
-        return self.momenta/self.masses
+        return self.momenta/[[mass,mass] for mass in self.masses]

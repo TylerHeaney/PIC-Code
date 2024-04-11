@@ -83,11 +83,11 @@ def main():
   #cProfile.run('anim()')half=20
   plt.xticks([i*sim.delta_x for i in range(sim.num_cells)])
 
-  update=anim(ax, sim)
+  update=anim(fig, ax, sim)
   
   ani=FuncAnimation(fig,update,frames=500,interval=50)
-  ani.save('animation.gif', writer='imagemagick', fps=12)
-  # plt.show()
+  # ani.save('animation.gif', writer='imagemagick', fps=12)
+  plt.show()
   fig, ax = plt.subplots()
   ax.cla()
   global x
@@ -97,16 +97,17 @@ def main():
 
 
 def two_d_sim():
-  particle_num=40
-  cell_length=.125
-  cell_number=40
-  timestep=.06
+  particle_num=4
+  cell_length=.025
+  cell_number=20
+  timestep=.0005
   momentum=4e-26
   sd=.3*momentum
 
   half=(int)(particle_num/2)
-  sim=Simulator(timestep,cell_length,cell_number,half*2,[1.67e-27]*half+[1.67e-27]*half,[1.6022e-19]*half+[-1.6022e-19]*half,[1]*half*2)
-  sim.initialize([[random.random()*cell_length*cell_number,random.random()*cell_length*cell_number] for _ in range(particle_num)], [[np.random.normal(momentum,sd),np.random.normal(momentum,sd)] for _ in range(particle_num)])
+  # half=1
+  sim=Simulator(timestep,cell_length,cell_number,half*2,[1.67e-27]*half+[1.67e-27]*half,[1.6022e-19]*half+[1.6022e-19]*half,[1]*half*2)
+  sim.initialize([[random.random()*cell_length*cell_number,random.random()*cell_length*cell_number] for _ in range(particle_num)], [[0,0.0] for _ in range(particle_num)])
   for i in range(len(sim.particles.momenta)):
     sim.particles.momenta[i] *= 1+.1*np.sin(2*np.pi*sim.particles.positions[i]/cell_number/cell_length)
   return sim 
@@ -118,21 +119,27 @@ def two_d():
   sim = two_d_sim()
 
   plt.xticks([i*sim.delta_x for i in range(sim.num_cells)])
-  update=anim(ax, sim)
+  update=anim(fig, ax, sim)
   
-  ani=FuncAnimation(fig,update,frames=500,interval=50)
-  ani.save('2Danimation.gif', writer='imagemagick', fps=12)
+  # ani=FuncAnimation(fig,update,frames=50,interval=50)
+  sim.step()
+  # ani.save('2Danimation.gif', writer='imagemagick', fps=12)
+  p=plt.imshow(np.array([[sim.mesh.fields[i,j,0]**2+sim.mesh.fields[i,j,1]**2 for i in range(10)] for j in range(10)]),origin='lower',norm='linear')
+  plt.quiver([[i*sim.delta_x]*sim.num_cells for i in range(sim.num_cells)],[[i*sim.delta_x for i in range(sim.num_cells)]]*sim.num_cells,sim.mesh.fields[:,:,0],sim.mesh.fields[:,:,1],width=.01*sim.delta_x*sim.num_cells)
+  # for j in range(sim.num_cells):
+    # for i in range(sim.num_cells):
+      # plt.quiver((sim.num_cells-j)*sim.delta_x,(sim.num_cells-i)*sim.delta_x,sim.mesh.fields[i,j,0],sim.mesh.fields[i,j,1],width=.01*sim.delta_x*sim.num_cells)
   plt.show()
 
 
-def anim(ax, sim):
+def anim(fig, ax, sim):
 
   half=(int)(sim.particles.number / 2)
 
   x_p=sim.particles.positions[:half]
   x_e=sim.particles.positions[half:]
-  protons,=ax.plot(x_p[:,0], x_p[:,1], 'o', markersize=.4, color='blue', label='Position: Protons')
-  electrons,=ax.plot(x_e[:,0],x_e[:,1], 'o', markersize=.4, color='red', label='Position: Electrons')
+  protons,=ax.plot(x_p[:,0], x_p[:,1], 'o', markersize=4, color='blue', label='Position: Protons')
+  electrons,=ax.plot(x_e[:,0],x_e[:,1], 'o', markersize=4, color='red', label='Position: Electrons')
 
   
 
@@ -143,11 +150,13 @@ def anim(ax, sim):
     
     x_p=sim.particles.positions[:half]
     x_e=sim.particles.positions[half:]
-    ax.axhline(y=0, color='black', linewidth=0.5)
+    # ax.axhline(y=0, color='black', linewidth=0.5)
     plt.xticks([i*sim.delta_x for i in range(0,sim.num_cells,50)])
     # ax.plot(sim.particles.positions,sim.particles.fields,'o',markersize=.4)
-    protons,=ax.plot(x_p[:,0], x_p[:,0], 'o', markersize=.4, color='blue', label='Position: Protons')
-    electrons,=ax.plot(x_e[:,0],x_e[:,0], 'o', markersize=.4, color='red', label='Position: Electrons')
+    protons,=ax.plot(x_p[:,0], x_p[:,1], 'o', markersize=4, color='blue', label='Position: Protons')
+    electrons,=ax.plot(x_e[:,0],x_e[:,1], 'o', markersize=4, color='red', label='Position: Electrons')
+    p=fig.figimage(np.array([[sim.mesh.fields[i,j,0]**2+sim.mesh.fields[i,j,1]**2 for i in range(10)] for j in range(10)]),origin='lower',norm='linear')
+    # fig.figimage(sim.mesh.charges.T,origin='lower')
     ax.set_ylim([0,sim.delta_x*sim.num_cells])
     # ax.set_ylim([-2e-6,2e-6])
     ax.set_xlim([0,sim.delta_x*sim.num_cells])
